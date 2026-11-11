@@ -113,7 +113,8 @@ export function StartBDPage() {
   const isBangla = language === "bn";
 
   const services = useMemo(() => filterServices(search, group), [search, group]);
-  const activePhase = roadmapPhases.find((phase) => phase.id === selectedPhase) ?? roadmapPhases[0];
+  const activePhase = roadmapPhases.find((phase) => phase.id === selectedPhase);
+  if (!activePhase) return null;
 
   useEffect(() => {
     return () => {
