@@ -341,16 +341,16 @@ export function filterServices(query: string, group: CatalogGroup | "all") {
   const normalizedQuery = query.trim().toLocaleLowerCase();
   return ecosystemServices.filter((service) => {
     const matchesGroup = group === "all" || service.group === group;
-    const searchableText = [
-      service.name,
-      service.cluster,
-      service.clusterBn,
-      service.description,
-      service.descriptionBn,
-      ...service.searchTerms,
-    ]
-      .join(" ")
-      .toLocaleLowerCase();
-    return matchesGroup && (!normalizedQuery || searchableText.includes(normalizedQuery));
+    const name = service.name.toLocaleLowerCase();
+    const searchableTerms = [service.cluster, service.clusterBn, ...service.searchTerms].map((term) =>
+      term.toLocaleLowerCase(),
+    );
+    const matchesQuery =
+      !normalizedQuery ||
+      searchableTerms.some((term) =>
+        normalizedQuery.length < 3 ? term === normalizedQuery : term.includes(normalizedQuery),
+      ) ||
+      (normalizedQuery.length >= 3 && name.includes(normalizedQuery));
+    return matchesGroup && matchesQuery;
   });
 }

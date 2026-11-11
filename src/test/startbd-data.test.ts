@@ -24,7 +24,7 @@ describe("startBD ecosystem plan", () => {
   });
 
   it("finds BanglaEV by the requested EV search term", () => {
-    expect(filterServices("EV", "all").map(({ name }) => name)).toContain("BanglaEV");
+    expect(filterServices("EV", "all").map(({ name }) => name)).toEqual(["BanglaEV"]);
   });
 
   it("finds translateBD by the requested translation search term", () => {
