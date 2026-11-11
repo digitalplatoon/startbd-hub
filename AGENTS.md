@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application structure
+- Keep the startBD discovery experience on the index route, with catalog and roadmap data in a shared module so search and filtering use one consistent source.
