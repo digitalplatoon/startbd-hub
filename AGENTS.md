@@ -31,3 +31,4 @@ use the editor.
 
 ## Application structure
 - Keep the startBD discovery experience on the index route, with catalog and roadmap data in a shared module so search and filtering use one consistent source.
+- Implement streamed AI chat through TanStack server routes with request-scoped Gateway helpers in server-only modules, and keep session-only thread state in a root provider so thread navigation needs no history storage.
