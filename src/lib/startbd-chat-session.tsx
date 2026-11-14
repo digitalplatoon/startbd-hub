@@ -14,13 +14,14 @@ export type ChatThread = {
   id: string;
   title: string;
   messages: UIMessage[];
+  initialQuestion?: string;
 };
 
 type StartBDChatSessionValue = {
   language: StartBDLanguage;
   setLanguage: (language: StartBDLanguage) => void;
   threads: ChatThread[];
-  createThread: () => string;
+  createThread: (initialQuestion?: string) => string;
   ensureThread: (id: string) => void;
   setThreadMessages: (id: string, messages: UIMessage[]) => void;
 };
@@ -31,9 +32,9 @@ export function StartBDChatSessionProvider({ children }: { children: ReactNode }
   const [language, setLanguage] = useState<StartBDLanguage>("en");
   const [threads, setThreads] = useState<ChatThread[]>([]);
 
-  const createThread = useCallback(() => {
+  const createThread = useCallback((initialQuestion?: string) => {
     const id = crypto.randomUUID();
-    setThreads((current) => [{ id, title: "New conversation", messages: [] }, ...current]);
+    setThreads((current) => [{ id, title: "New conversation", messages: [], initialQuestion }, ...current]);
     return id;
   }, []);
 

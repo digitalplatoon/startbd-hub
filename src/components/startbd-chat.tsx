@@ -20,17 +20,18 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { useStartBDChatSession } from "@/lib/startbd-chat-session";
 
-type StartBDChatProps = { threadId: string; initialQuestion?: string };
+type StartBDChatProps = { threadId: string };
 
 const transport = new DefaultChatTransport({ api: "/api/chat" });
 
-export function StartBDChat({ threadId, initialQuestion }: StartBDChatProps) {
+export function StartBDChat({ threadId }: StartBDChatProps) {
   const { language, setLanguage, threads, createThread, ensureThread, setThreadMessages } = useStartBDChatSession();
   const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const initialPromptSent = useRef(false);
   const isBangla = language === "bn";
   const thread = threads.find((item) => item.id === threadId);
+  const initialQuestion = thread?.initialQuestion;
   const initialMessages = thread?.messages ?? [];
   const finishHandler = useCallback(
     (event: { messages: UIMessage[] }) => setThreadMessages(threadId, event.messages),
@@ -71,7 +72,7 @@ export function StartBDChat({ threadId, initialQuestion }: StartBDChatProps) {
 
   const handleNewThread = () => {
     const nextId = createThread();
-    void navigate({ to: "/chat/$threadId", params: { threadId: nextId }, search: { q: undefined } });
+    void navigate({ to: "/chat/$threadId", params: { threadId: nextId } });
   };
 
   const errorMessage = useMemo(() => {
@@ -120,7 +121,6 @@ export function StartBDChat({ threadId, initialQuestion }: StartBDChatProps) {
                 className={item.id === threadId ? "chat-thread-link is-active" : "chat-thread-link"}
                 key={item.id}
                 params={{ threadId: item.id }}
-                search={{ q: undefined }}
                 to="/chat/$threadId"
               >
                 <span className="thread-link-icon"><MessageSquarePlus aria-hidden="true" /></span>
@@ -177,7 +177,7 @@ export function StartBDChat({ threadId, initialQuestion }: StartBDChatProps) {
               <PromptInputTextarea autoFocus aria-label={isBangla ? "আপনার প্রশ্ন" : "Your question"} placeholder={isBangla ? "বাংলা, বাংলিশ বা ইংরেজিতে লিখুন…" : "Ask in Bangla, Banglish, or English…"} ref={textareaRef} rows={1} />
               <PromptInputFooter className="chat-prompt-footer">
                 <span>{isBangla ? "শুধু স্টার্টবিডের তথ্যের ভিত্তিতে উত্তর" : "Answers grounded in the startBD guide"}</span>
-                <PromptInputSubmit aria-label={isBangla ? "প্রশ্ন পাঠান" : "Send question"} disabled={status === "submitted" || status === "streaming"} onStop={() => void chat.stop()} status={status} />
+                <PromptInputSubmit aria-label={isBangla ? "প্রশ্ন পাঠান" : "Send question"} onStop={() => void chat.stop()} status={status} />
               </PromptInputFooter>
             </PromptInput>
             <p className="chat-disclaimer">{isBangla ? "ভুল হতে পারে—গুরুত্বপূর্ণ তথ্য যাচাই করে নিন।" : "AI answers can be imperfect; verify important details."}</p>

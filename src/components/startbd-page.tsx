@@ -143,11 +143,10 @@ export function StartBDPage() {
   };
 
   const openChat = (question?: string) => {
-    const threadId = createThread();
+    const threadId = createThread(question);
     void navigate({
       to: "/chat/$threadId",
       params: { threadId },
-      search: { q: question },
     });
   };
 
