@@ -2,9 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { StartBDChat } from "@/components/startbd-chat";
 
 export const Route = createFileRoute("/chat/$threadId")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    q: typeof search.q === "string" ? search.q.slice(0, 500) : undefined,
-  }),
   head: () => ({
     meta: [
       { title: "Ask BDai — startBD ecosystem guide" },
@@ -20,6 +17,5 @@ export const Route = createFileRoute("/chat/$threadId")({
 
 function ChatRoute() {
   const { threadId } = Route.useParams();
-  const { q } = Route.useSearch();
-  return <StartBDChat key={threadId} threadId={threadId} initialQuestion={q} />;
+  return <StartBDChat key={threadId} threadId={threadId} />;
 }

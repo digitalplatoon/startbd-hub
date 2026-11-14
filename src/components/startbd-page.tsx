@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowDown,
   ArrowRight,
@@ -45,6 +47,7 @@ import {
   type PhaseId,
 } from "@/lib/startbd-data";
 import interiorRoom from "@/assets/bangla-interior-living-room.jpg";
+import { useStartBDChatSession } from "@/lib/startbd-chat-session";
 
 type Language = "en" | "bn";
 
@@ -96,14 +99,14 @@ function scrollToSection(id: string) {
 }
 
 export function StartBDPage() {
-  const [language, setLanguage] = useState<Language>("en");
+  const { language, setLanguage, createThread } = useStartBDChatSession();
+  const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const [group, setGroup] = useState<CatalogGroup | "all">("all");
   const [search, setSearch] = useState("");
   const [selectedPhase, setSelectedPhase] = useState<PhaseId>("foundation");
   const [comparison, setComparison] = useState(54);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState("Dhaka te chhoto barir jonno kon gachh bhalo?");
-  const [showAnswer, setShowAnswer] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState("user");
@@ -114,7 +117,6 @@ export function StartBDPage() {
 
   const services = useMemo(() => filterServices(search, group), [search, group]);
   const activePhase = roadmapPhases.find((phase) => phase.id === selectedPhase);
-  if (!activePhase) return null;
 
   useEffect(() => {
     return () => {
@@ -140,8 +142,27 @@ export function StartBDPage() {
     if (otp.length === 6) setWaitlistDone(true);
   };
 
+  const openChat = (question?: string) => {
+    const threadId = createThread(question);
+    void navigate({
+      to: "/chat/$threadId",
+      params: { threadId },
+    });
+  };
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  if (!activePhase) return null;
+
   return (
-    <main>
+    <motion.main
+      className="startbd-home"
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+    >
       <header className="site-header">
         <a aria-label="startBD home" className="brand-lockup" href="#home">
           <span className="brand-mark"><span /></span>
@@ -150,6 +171,7 @@ export function StartBDPage() {
         <nav aria-label={isBangla ? "প্রধান নেভিগেশন" : "Main navigation"} className={mobileNavOpen ? "primary-nav is-open" : "primary-nav"}>
           <a href="#ecosystem" onClick={() => setMobileNavOpen(false)}>{isBangla ? "ইকোসিস্টেম" : "Ecosystem"}</a>
           <a href="#spotlight" onClick={() => setMobileNavOpen(false)}>{isBangla ? "স্পটলাইট" : "Spotlight"}</a>
+          <a href="#bdask" onClick={() => setMobileNavOpen(false)}>{isBangla ? "BDai-কে জিজ্ঞেস করুন" : "Ask BDai"}</a>
           <a href="#roadmap" onClick={() => setMobileNavOpen(false)}>{isBangla ? "রোডম্যাপ" : "Roadmap"}</a>
           <a href="#developers" onClick={() => setMobileNavOpen(false)}>{isBangla ? "ডেভেলপার হাব" : "Developer hub"}</a>
         </nav>
@@ -163,8 +185,8 @@ export function StartBDPage() {
             <Languages aria-hidden="true" size={16} />
             {isBangla ? "EN" : "বাং"}
           </button>
-          <Button className="header-cta" onClick={() => scrollToSection("early-access")}>
-            {isBangla ? "এক অ্যাকাউন্ট" : "One Account"}
+          <Button className="header-cta" onClick={() => openChat()}>
+            {isBangla ? "BDai-কে জিজ্ঞেস করুন" : "Ask BDai"}
             <ArrowUpRight aria-hidden="true" />
           </Button>
           <Button aria-label={mobileNavOpen ? "Close menu" : "Open menu"} className="mobile-menu" onClick={() => setMobileNavOpen(!mobileNavOpen)} size="icon" variant="outline">
@@ -173,7 +195,7 @@ export function StartBDPage() {
         </div>
       </header>
 
-      <section aria-labelledby="hero-title" className="hero-section" id="home">
+      <motion.section aria-labelledby="hero-title" className="hero-section motion-reveal" id="home" initial={reduceMotion ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> {isBangla ? "বাংলাদেশের প্রথম সমন্বিত এআই ইকোসিস্টেম" : "Bangladesh’s integrated AI ecosystem"}</div>
           <h1 id="hero-title">{isBangla ? <>এক অ্যাকাউন্ট।<br /><span>এক এআই কোর।</span><br />বাংলাদেশের জন্য।</> : <>One account.<br /><span>One AI core.</span><br />Built for Bangladesh.</>}</h1>
@@ -183,8 +205,8 @@ export function StartBDPage() {
               : "One connected network, powered by BDai and made for the way Bangladesh thinks, speaks and gets things done—in Bangla, English and Banglish."}
           </p>
           <div className="hero-buttons">
-            <Button className="button-primary" onClick={() => scrollToSection("ecosystem")} size="lg">
-              {isBangla ? "ইকোসিস্টেম আবিষ্কার করুন" : "Explore the ecosystem"}
+            <Button className="button-primary" onClick={() => openChat()} size="lg">
+              {isBangla ? "BDai-কে প্রশ্ন করুন" : "Ask the startBD guide"}
               <ArrowRight aria-hidden="true" />
             </Button>
             <a className="hero-text-link" href="#early-access">{isBangla ? "আর্লি অ্যাক্সেসে যোগ দিন" : "Get early access"}<ArrowUpRight aria-hidden="true" size={15} /></a>
@@ -228,18 +250,18 @@ export function StartBDPage() {
           <div className="hero-proof"><span className="proof-mark">{isBangla ? "বাং" : "BD"}</span><span>{isBangla ? "বাংলার জন্য তৈরি" : "Made for Bangladesh"}</span><span className="proof-separator">/</span><span>{isBangla ? "বাংলা · বাংলিশ · ইংরেজি" : "Bangla · Banglish · English"}</span></div>
           <a className="scroll-cue" href="#ecosystem">{isBangla ? "এক্সপ্লোর করুন" : "Scroll to explore"}<ArrowDown aria-hidden="true" size={14} /></a>
         </div>
-      </section>
+      </motion.section>
 
-      <section aria-label="Ecosystem at a glance" className="stats-band">
+      <motion.section aria-label="Ecosystem at a glance" className="stats-band motion-reveal" initial={reduceMotion ? false : { opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.5 }}>
         <div className="stats-inner">
           <div className="stat-item"><span className="stat-value">{ecosystemServices.length}<small>+</small></span><span className="stat-label">{isBangla ? "ইকোসিস্টেম সেবা" : "Ecosystem services"}</span></div>
           <div className="stat-item"><span className="stat-value">09</span><span className="stat-label">{isBangla ? "পরিকল্পিত ভার্টিক্যাল" : "Planned verticals"}</span></div>
           <div className="stat-item"><span className="stat-value">04</span><span className="stat-label">{isBangla ? "লঞ্চ পর্ব" : "Launch phases"}</span></div>
           <div className="stat-note"><span className="status-indicator"><span className="live-dot" /> {isBangla ? "এখন তৈরি হচ্ছে" : "IN THE MAKING"}</span><p>{isBangla ? "নভেম্বর ২০২৬ · v1.0 রোডম্যাপ" : "November 2026 · v1.0 roadmap"}</p></div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="directory-section page-section" id="ecosystem">
+      <motion.section className="directory-section page-section motion-reveal" id="ecosystem" initial={reduceMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: 0.55 }}>
         <div className="section-heading directory-heading">
           <div><div className="section-eyebrow"><span>01</span> {isBangla ? "ইকোসিস্টেম এক্সপ্লোরার" : "THE ECOSYSTEM EXPLORER"}</div><h2>{isBangla ? <>একটি কোর।<br /><span>আপনার সব প্রয়োজন।</span></> : <>One core.<br /><span>A world of useful.</span></>}</h2></div>
           <div className="section-heading-aside"><p>{isBangla ? "বাংলাদেশের মানুষ ও ব্যবসার জন্য নকশা করা এআই সেবা, এক নেটওয়ার্কে।" : "A growing network of AI-powered tools and local-first services, designed around the way Bangladesh lives and works."}</p><span className="directory-count">SHOWING <b>{services.length.toString().padStart(2, "0")}</b> / 21</span></div>
@@ -259,14 +281,14 @@ export function StartBDPage() {
               <div className="service-meta"><span className="cluster-tag">{isBangla ? service.clusterBn : service.cluster}</span><span className="phase-tag">{phaseNames[service.phase][isBangla ? "bn" : "en"]}</span></div>
               <h3>{service.name}</h3>
               <p>{isBangla ? service.descriptionBn : service.description}</p>
-              <a className="service-action" href={actionTarget}>{actionCopy[language][service.action]}<ArrowUpRight aria-hidden="true" size={16} /></a>
+              <a className="service-action" href={actionTarget} onClick={service.action === "launch" ? (event) => { event.preventDefault(); openChat(`Tell me about ${service.name}`); } : undefined}>{actionCopy[language][service.action]}<ArrowUpRight aria-hidden="true" size={16} /></a>
             </article>;
           })}
         </div> : <div className="empty-results"><Compass aria-hidden="true" size={26} /><p>{isBangla ? "এই খোঁজে কোনো সেবা পাওয়া যায়নি।" : "No services matched that search."}</p><Button onClick={() => { setSearch(""); setGroup("all"); }} variant="outline">{isBangla ? "সব সেবা দেখুন" : "See all services"}</Button></div>}
         <div className="directory-end"><span><span className="live-dot" /> {isBangla ? "আরও সেবা আসছে" : "MORE SERVICES ARE ON THE WAY"}</span><a href="#roadmap">{isBangla ? "সম্পূর্ণ রোডম্যাপ" : "View the full roadmap"}<ArrowRight aria-hidden="true" size={15} /></a></div>
-      </section>
+      </motion.section>
 
-      <section className="spotlight-section page-section" id="spotlight">
+      <motion.section className="spotlight-section page-section motion-reveal" id="spotlight" initial={reduceMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: 0.55 }}>
         <div className="spotlight-heading"><div className="section-eyebrow"><span>02</span> {isBangla ? "প্রথম ভার্টিক্যাল · ফেজ ১" : "FIRST VERTICAL · PHASE 01"}</div><h2>{isBangla ? <>একটি নতুন<br />ধরনের <span>ঘর ভাবুন।</span></> : <>See your space<br />in a <span>new light.</span></>}</h2><p>{isBangla ? "বাংলাদেশি ঘরের জন্য নকশা করা ডিজাইন পরামর্শ। আপনার জায়গার একটি ছবি থেকে শুরু করুন।" : "BanglaInterior brings thoughtful, locally aware design ideas to the homes we know. Start with a photo of your own space."}<br /><span>{isBangla ? "বাংলাদেশের ঘরের জন্য, বাংলাদেশেই তৈরি।" : "Designed for the way we live here."}</span></p><div className="spotlight-tags"><span><Check size={13} /> {isBangla ? "বাংলাদেশি বাড়ির মাপ" : "Bangladeshi home sizes"}</span><span><Check size={13} /> {isBangla ? "স্থানীয় নান্দনিকতা" : "Local design sensibility"}</span></div></div>
         <div className="room-feature">
           <div className="room-image-wrap">
@@ -281,21 +303,26 @@ export function StartBDPage() {
           <div className="room-toolbar"><span>{isBangla ? "এটি একটি ডিজাইন প্রিভিউ" : "DESIGN PREVIEW"}<span className="preview-divider">·</span>{isBangla ? "ছবি আপলোড করুন" : "ADD YOUR ROOM PHOTO"}</span><label className="upload-link" htmlFor="room-photo">{uploadedPhoto ? (isBangla ? "অন্য ছবি বেছে নিন" : "Choose another photo") : (isBangla ? "ছবি বেছে নিন" : "Choose a photo")}<ArrowUpRight size={14} /><input accept="image/*" id="room-photo" onChange={handlePhoto} type="file" /></label></div>
           <p className="preview-disclaimer">{isBangla ? "ছবিটি শুধু এই প্রিভিউতে দেখানো হবে—কোথাও পাঠানো হয় না। ডিজাইন জেনারেশন এখনও চালু নয়।" : "Your photo stays in this preview. No image is uploaded; AI redesign is not connected yet."}</p>
         </div>
-      </section>
+      </motion.section>
 
-      <section aria-labelledby="bdask-title" className="bdask-section" id="bdask">
+      <motion.section aria-labelledby="bdask-title" className="bdask-section motion-reveal" id="bdask" initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.18 }} transition={{ duration: 0.55 }}>
         <div className="bdask-inner">
           <div className="bdask-copy"><div className="section-eyebrow section-eyebrow-light"><span>03</span> {isBangla ? "BDai কোর · লাইভ প্রিভিউ" : "BDai CORE · INTERACTIVE PREVIEW"}</div><h2 id="bdask-title">{isBangla ? <>আপনার ভাষায় বলুন।<br /><span>উত্তরও পান সেভাবে।</span></> : <>Think in Bangla.<br /><span>Ask away.</span></>}</h2><p>{isBangla ? "বাংলা, বাংলিশ বা ইংরেজিতে প্রশ্ন করুন। BDai আপনার প্রেক্ষাপট বুঝতে তৈরি।" : "A glimpse of what a Bangladesh-first AI can feel like. Ask naturally—in Bangla, English or the way you actually talk."}</p><div className="bdask-stamps"><span><Languages size={15} /> Bangla</span><span>বাংলিশ</span><span>English</span></div><a className="light-link" href="#ecosystem">{isBangla ? "BDai ও BDAsk দেখুন" : "Discover BDai & BDAsk"}<ArrowRight size={15} /></a></div>
           <div className="chat-demo">
-            <div className="chat-top"><span className="chat-avatar"><Sparkles size={16} /></span><span><strong>BDAsk <i>PREVIEW</i></strong><small>{isBangla ? "BDai দ্বারা চালিত" : "Powered by BDai"}</small></span><span className="chat-online"><span className="live-dot" /> DEMO</span></div>
-            <div className="chat-messages"><div className="chat-date">TODAY · 10:42 AM</div><div className="chat-user-message">{prompt}</div>{showAnswer ? <div className="chat-answer"><span className="answer-mark"><Sparkles size={14} /></span><div><span className="answer-label">BDai <span>· {isBangla ? "বাংলায় উত্তর" : "Replying in Bangla"}</span></span><p>ঢাকার ছোট ঘরে কম আলোতেও মানিয়ে নেয়—এমন মানিপ্ল্যান্ট বা স্নেক প্ল্যান্ট দিয়ে শুরু করতে পারেন। জানালার কাছে রাখুন, আর সপ্তাহে একবার পানি দিন। <span>{isBangla ? "আপনার ঘরের আলো আর জায়গা অনুযায়ী বেছে নিন।" : "Choose based on your room’s natural light and available space."}</span></p></div></div> : <div className="chat-hint"><span><Sparkles size={14} /></span>{isBangla ? "আপনার প্রশ্নের উত্তর এখানে দেখা যাবে" : "Your answer will appear here"}</div>}</div>
-            <form className="chat-input-row" onSubmit={(event) => { event.preventDefault(); setShowAnswer(true); }}><input aria-label={isBangla ? "আপনার প্রশ্ন" : "Your question"} onChange={(event) => setPrompt(event.currentTarget.value)} placeholder={isBangla ? "কিছু জিজ্ঞেস করুন..." : "Ask something..."} value={prompt} /><Button aria-label={isBangla ? "প্রশ্ন পাঠান" : "Send question"} disabled={!prompt.trim()} size="icon" type="submit"><ArrowUpRight /></Button></form>
-            <div className="chat-footnote">{isBangla ? "একটি ধারণামূলক প্রিভিউ · কোনো এআই সংযুক্ত নয়" : "An illustrative preview · No AI service is connected"}</div>
+            <div className="chat-top"><span className="chat-avatar"><span className="chat-avatar-monogram">BD</span></span><span><strong>BDai <i>{isBangla ? "প্রশ্নোত্তর" : "ECOSYSTEM GUIDE"}</i></strong><small>{isBangla ? "বাংলা · বাংলিশ · English" : "Bangla · Banglish · English"}</small></span><span className="chat-online"><span className="live-dot" /> {isBangla ? "লাইভ এআই" : "AI Q&A"}</span></div>
+            <div className="chat-preview-copy"><span className="chat-preview-kicker">{isBangla ? "আপনার startBD গাইড" : "YOUR startBD GUIDE"}</span><p>{isBangla ? "সেবা, রোডম্যাপ বা আপনার প্রয়োজন নিয়ে প্রশ্ন করুন।" : "Ask about a service, the roadmap, or what fits your needs."}</p></div>
+            <div className="chat-suggestion-list">
+              {(isBangla ? ["startBD কী?", "প্রথম ধাপে কী আসবে?"] : ["What is startBD?", "What’s planned for Phase 1?"]).map((question) => (
+                <Button className="chat-suggestion" key={question} onClick={() => openChat(question)} variant="outline">{question}<ArrowUpRight aria-hidden="true" /></Button>
+              ))}
+            </div>
+            <Button className="chat-start-button" onClick={() => openChat()}>{isBangla ? "প্রশ্ন করুন" : "Ask BDai"}<ArrowRight aria-hidden="true" /></Button>
+            <div className="chat-footnote">{isBangla ? "এই সেশনের কথোপকথন ব্রাউজারেই থাকবে।" : "Conversations stay in this browser session only."}</div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="roadmap-section page-section" id="roadmap">
+      <motion.section className="roadmap-section page-section motion-reveal" id="roadmap" initial={reduceMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.12 }} transition={{ duration: 0.55 }}>
         <div className="section-heading roadmap-heading"><div><div className="section-eyebrow"><span>04</span> {isBangla ? "১২ মাসের রোডম্যাপ" : "THE 12-MONTH ROADMAP"}</div><h2>{isBangla ? <>ধাপে ধাপে।<br /><span>একসঙ্গেই এগিয়ে।</span></> : <>Build with purpose.<br /><span>Grow by phase.</span></>}</h2></div><div className="section-heading-aside"><p>{isBangla ? "v1.0 পরিকল্পনা · নভেম্বর ২০২৬" : "A clear path from a shared foundation to an open ecosystem. v1.0 plan · November 2026."}<br /><span>{isBangla ? "পরিকল্পিত ১২ মাস · ৪টি ফেজ" : "12 planned months · 4 phases"}</span></p><div className="roadmap-key"><span className="key-foundation" />{isBangla ? "নির্মাণ" : "Build"}<span className="key-community" />{isBangla ? "ব্যবহারকারীর জন্য" : "For people"}</div></div></div>
         <div className="timeline-tabs" role="tablist" aria-label={isBangla ? "রোডম্যাপের ধাপ" : "Roadmap phases"}>
           {roadmapPhases.map((phase) => <button aria-selected={selectedPhase === phase.id} className={selectedPhase === phase.id ? "timeline-tab is-selected" : "timeline-tab"} key={phase.id} onClick={() => setSelectedPhase(phase.id)} role="tab" type="button"><span className="timeline-dot" /><span className="timeline-tab-copy"><small>PHASE {phase.number}</small><strong>{isBangla ? phase.nameBn : phase.name}</strong><span>{phase.months}</span></span></button>)}
@@ -305,9 +332,9 @@ export function StartBDPage() {
           <div className="phase-architecture"><div className="architecture-label"><Workflow size={15} /> {isBangla ? "ইকোসিস্টেম আর্কিটেকচার" : "ECOSYSTEM ARCHITECTURE"}</div><div className="architecture-map"><div className="architecture-spine" /><span className="architecture-satellite satellite-one">{activePhase.id === "foundation" ? "One Account" : activePhase.id === "traffic" ? "BDAsk" : activePhase.id === "verticals" ? "BanglaEV" : "BDai.dev"}</span><span className="architecture-satellite satellite-two">{activePhase.id === "foundation" ? "BanglaInterior" : activePhase.id === "traffic" ? "translateBD" : activePhase.id === "verticals" ? "ApartmentsBD" : "Community"}</span><div className="architecture-core"><Sparkles /><b>BDai</b><small>SHARED CORE</small></div><span className="architecture-satellite satellite-three">{activePhase.id === "foundation" ? "BDaiHub" : activePhase.id === "traffic" ? "writeBD" : activePhase.id === "verticals" ? "BanglaAgri" : "Builders"}</span></div><div className="architecture-foot"><span className="live-dot" />{isBangla ? "একটি কোর · এই ফেজের অভিজ্ঞতা" : "One core · experiences in this phase"}</div></div>
         </div>
         <div className="roadmap-disclaimer">{isBangla ? "এটি পরিকল্পিত টাইমলাইন, চালু সেবার তালিকা নয়।" : "Planned milestones—not a statement of currently live services."}</div>
-      </section>
+      </motion.section>
 
-      <section className="early-access-section" id="early-access">
+      <motion.section className="early-access-section motion-reveal" id="early-access" initial={reduceMotion ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.55 }}>
         <div className="early-access-grid">
           <div className="early-access-copy"><div className="section-eyebrow section-eyebrow-light"><span>05</span> {isBangla ? "আগে যুক্ত হন" : "BE PART OF WHAT’S NEXT"}</div><h2>{isBangla ? <>এক অ্যাকাউন্ট।<br /><span>সবকিছুতে সহজ প্রবেশ।</span></> : <>One Account.<br /><span>Doors open wider.</span></>}</h2><p>{isBangla ? "আপনার ভূমিকাটি বেছে নিন, শুরুর খবর সবার আগে জানুন।" : "Get a first look as the startBD network comes together. Choose how you’d like to be part of it."}</p><div className="role-preview"><span><Check size={13} /> User</span><span><Check size={13} /> Creator</span><span><Check size={13} /> Developer</span><span><Check size={13} /> Partner</span></div></div>
           <form className="waitlist-form" onSubmit={handleWaitlist}>
@@ -330,13 +357,13 @@ export function StartBDPage() {
             </>}
           </form>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="developer-section page-section" id="developers">
+      <motion.section className="developer-section page-section motion-reveal" id="developers" initial={reduceMotion ? false : { opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.5 }}>
         <div className="developer-glyph"><Code2 aria-hidden="true" size={29} /><span>BDai.dev</span></div>
         <div className="developer-copy"><div className="section-eyebrow"><span>06</span> {isBangla ? "নির্মাতাদের জন্য" : "FOR THE BUILDERS"}</div><h2>{isBangla ? "বাংলার পরের অধ্যায় তৈরি করুন।" : "Build what comes next."}</h2><p>{isBangla ? "BDai.dev-এর এপিআই, ডকস ও কমিউনিটি হাবের খবর পেতে আগ্রহ জানান।" : "Build with a shared AI core and a growing suite of locally relevant services. BDai.dev API docs and the builder community are on the roadmap."}</p></div>
         <a className="developer-cta" href="#early-access"><span>{isBangla ? "ডেভেলপার হিসেবে যোগ দিন" : "Join as a developer"}</span><ArrowUpRight size={18} /></a>
-      </section>
+      </motion.section>
 
       <footer className="site-footer">
         <div className="footer-top"><div className="footer-brand"><a aria-label="startBD home" className="brand-lockup" href="#home"><span className="brand-mark"><span /></span><span className="brand-word">start<span>BD</span><i>.</i></span></a><p>{isBangla ? "বাংলাদেশের প্রথম সমন্বিত এআই ইকোসিস্টেম।" : "Bangladesh’s integrated AI ecosystem."}</p><span className="footer-local"><span className="live-dot" /> MADE FOR BANGLADESH</span></div>
@@ -346,6 +373,6 @@ export function StartBDPage() {
         </div>
         <div className="footer-bottom"><span>© 2026 startBD.com</span><span className="footer-tagline">One network. Built around us.</span><div><a href="#home">{isBangla ? "গোপনীয়তা" : "Privacy"}</a><a href="#home">{isBangla ? "শর্তাবলি" : "Terms"}</a><a aria-label="Back to top" href="#home">Back to top ↑</a></div></div>
       </footer>
-    </main>
+    </motion.main>
   );
 }
