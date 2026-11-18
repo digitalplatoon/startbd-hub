@@ -14,7 +14,7 @@ export type ChatThread = {
   id: string;
   title: string;
   messages: UIMessage[];
-  initialQuestion?: string;
+  initialQuestion: string | undefined;
 };
 
 type StartBDChatSessionValue = {
@@ -34,7 +34,12 @@ export function StartBDChatSessionProvider({ children }: { children: ReactNode }
 
   const createThread = useCallback((initialQuestion?: string) => {
     const id = crypto.randomUUID();
-    setThreads((current) => [{ id, title: "New conversation", messages: [], initialQuestion }, ...current]);
+    setThreads((current) => [{
+      id,
+      title: initialQuestion ? initialQuestion.slice(0, 48) : "New conversation",
+      messages: [],
+      initialQuestion,
+    }, ...current]);
     return id;
   }, []);
 
@@ -42,7 +47,7 @@ export function StartBDChatSessionProvider({ children }: { children: ReactNode }
     setThreads((current) =>
       current.some((thread) => thread.id === id)
         ? current
-        : [{ id, title: "New conversation", messages: [] }, ...current],
+        : [{ id, title: "New conversation", messages: [], initialQuestion: undefined }, ...current],
     );
   }, []);
 
@@ -60,10 +65,10 @@ export function StartBDChatSessionProvider({ children }: { children: ReactNode }
 
     setThreads((current) => {
       if (!current.some((thread) => thread.id === id)) {
-        return [{ id, title, messages }, ...current];
+        return [{ id, title, messages, initialQuestion: undefined }, ...current];
       }
       return current.map((thread) =>
-        thread.id === id ? { ...thread, title, messages } : thread,
+        thread.id === id ? { ...thread, title, messages, initialQuestion: undefined } : thread,
       );
     });
   }, []);

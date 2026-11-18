@@ -276,13 +276,21 @@ export function StartBDPage() {
           {services.map((service, index) => {
             const Icon = serviceIcons[service.icon] ?? Sparkles;
             const actionTarget = service.action === "roadmap" ? "#roadmap" : service.action === "beta" ? "#early-access" : "#bdask";
-            return <article className="service-card" key={service.name}>
+            return <motion.article
+              className="service-card"
+              key={service.name}
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ delay: reduceMotion ? 0 : Math.min(index * 0.025, 0.18), duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              {...(reduceMotion ? {} : { whileHover: { y: -4 } })}
+            >
               <div className="service-card-top"><span className={`service-icon service-icon-${service.group}`}><Icon aria-hidden="true" size={19} /></span><span className="service-number">{String(index + 1).padStart(2, "0")}</span></div>
               <div className="service-meta"><span className="cluster-tag">{isBangla ? service.clusterBn : service.cluster}</span><span className="phase-tag">{phaseNames[service.phase][isBangla ? "bn" : "en"]}</span></div>
               <h3>{service.name}</h3>
               <p>{isBangla ? service.descriptionBn : service.description}</p>
               <a className="service-action" href={actionTarget} onClick={service.action === "launch" ? (event) => { event.preventDefault(); openChat(`Tell me about ${service.name}`); } : undefined}>{actionCopy[language][service.action]}<ArrowUpRight aria-hidden="true" size={16} /></a>
-            </article>;
+            </motion.article>;
           })}
         </div> : <div className="empty-results"><Compass aria-hidden="true" size={26} /><p>{isBangla ? "এই খোঁজে কোনো সেবা পাওয়া যায়নি।" : "No services matched that search."}</p><Button onClick={() => { setSearch(""); setGroup("all"); }} variant="outline">{isBangla ? "সব সেবা দেখুন" : "See all services"}</Button></div>}
         <div className="directory-end"><span><span className="live-dot" /> {isBangla ? "আরও সেবা আসছে" : "MORE SERVICES ARE ON THE WAY"}</span><a href="#roadmap">{isBangla ? "সম্পূর্ণ রোডম্যাপ" : "View the full roadmap"}<ArrowRight aria-hidden="true" size={15} /></a></div>

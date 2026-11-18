@@ -50,6 +50,10 @@ export function StartBDChat({ threadId }: StartBDChatProps) {
   }, [ensureThread, threadId]);
 
   useEffect(() => {
+    if (chat.messages.length > 0) setThreadMessages(threadId, chat.messages);
+  }, [chat.messages, setThreadMessages, threadId]);
+
+  useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
