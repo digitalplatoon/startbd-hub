@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/chat")({
         const textId = crypto.randomUUID();
 
         const stream = createUIMessageStream({
-          onError: (error) => error instanceof Error ? error.message : "The answer could not be completed.",
+          onError: () => "The answer could not be completed. Please try again later.",
           execute: async ({ writer }) => {
             writer.write({ type: "start" });
             writer.write({ type: "text-start", id: textId });
